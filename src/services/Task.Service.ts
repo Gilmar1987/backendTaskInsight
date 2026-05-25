@@ -5,8 +5,8 @@ import { ITask } from '../models/Task';
 const repo = () => new TaskRepository();
 
 export class TaskService {
-  async createTaskService(title: string, description: string, userId: string) {
-    return repo().createTaskRepository(title, description, userId);
+  async createTaskService(title: string, description: string, userId: string, priority?: string, dueDate?: Date) {
+    return repo().createTaskRepository(title, description, userId, priority, dueDate);
   }
 
   async findByIdTaskService(id: string) {
@@ -16,19 +16,16 @@ export class TaskService {
   }
 
   async findAllByUserTaskService(userId: string) {
-    const tasks = await repo().findAllByUserTaskRepository(userId);
-    if (tasks.length === 0) throw new Error('Nenhuma tarefa encontrada para este usuário');
-    return tasks;
+    return repo().findAllByUserTaskRepository(userId);
   }
 
   async updateTaskService(id: string, data: Partial<ITask>) {
     const task = await this.findByIdTaskService(id);
-
     const updateData: Partial<ITask> = { ...data };
 
     if (data.status && data.status !== task.status) {
-      if (data.status === 'em andamento') updateData.startedAt = new Date();
-      if (data.status === 'concluída')    updateData.completedAt = new Date();
+      if (data.status === 'IN_PROGRESS') updateData.startedAt = new Date();
+      if (data.status === 'DONE')        updateData.completedAt = new Date();
     }
 
     return repo().updateTaskRepository(id, updateData);

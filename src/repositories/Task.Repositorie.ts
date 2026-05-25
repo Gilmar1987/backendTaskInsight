@@ -1,10 +1,10 @@
 // [Skill: repository]
-import { ITask, Task, TaskStatus } from '../models/Task';
+import { ITask, Task } from '../models/Task';
 import { Types } from 'mongoose';
 
 export class TaskRepository {
-  async createTaskRepository(title: string, description: string, userId: string): Promise<ITask> {
-    return await Task.create({ title, description, user: new Types.ObjectId(userId) });
+  async createTaskRepository(title: string, description: string, userId: string, priority?: string, dueDate?: Date): Promise<ITask> {
+    return await Task.create({ title, description, userId: new Types.ObjectId(userId), priority, dueDate });
   }
 
   async findByIdTaskRepository(id: string): Promise<ITask | null> {
@@ -12,7 +12,7 @@ export class TaskRepository {
   }
 
   async findAllByUserTaskRepository(userId: string): Promise<ITask[]> {
-    return await Task.find({ user: new Types.ObjectId(userId), isDeleted: false });
+    return await Task.find({ userId: new Types.ObjectId(userId), isDeleted: false });
   }
 
   async updateTaskRepository(id: string, data: Partial<ITask>): Promise<ITask | null> {
