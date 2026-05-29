@@ -5,6 +5,7 @@ export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH';
 
 export interface ITask extends Document {
   title: string;
+  titleNormalized: string;
   description: string;
   status: TaskStatus;
   priority: TaskPriority;
@@ -24,6 +25,12 @@ const taskSchema = new Schema<ITask>(
       trim: true,
       minlength: 3,
       maxlength: 120
+    },
+    titleNormalized: {
+        type: String,
+        required: true,
+        unique: true,
+        trim: true
     },
 
     description: {

@@ -46,7 +46,8 @@ if (err.code === 11000) {
 const conflictMessages = [
     'Email já cadastrado',
     'Email já cadastrado por outro usuário',
-    'Refresh token inválido'
+    'Refresh token inválido',
+    'Título já existe'
 ];
 
 if (conflictMessages.includes(err.message)) {

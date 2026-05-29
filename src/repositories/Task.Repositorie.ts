@@ -4,7 +4,12 @@ import { Types } from 'mongoose';
 
 export class TaskRepository {
   async createTaskRepository(title: string, description: string, userId: string, priority?: string, dueDate?: Date): Promise<ITask> {
-    return await Task.create({ title, description, userId: new Types.ObjectId(userId), priority, dueDate });
+    const titleNormalized = title.toUpperCase().replace(/\s+/g, '');
+    return await Task.create({ title, titleNormalized, description, userId: new Types.ObjectId(userId), priority, dueDate });
+  }
+
+  async findByTitleNormalizedTaskRepository(titleNormalized: string): Promise<ITask | null> {
+    return await Task.findOne({ titleNormalized, isDeleted: false });
   }
 
   async findByIdTaskRepository(id: string): Promise<ITask | null> {
@@ -20,6 +25,9 @@ export class TaskRepository {
   }
 
   async updateTaskRepository(id: string, data: Partial<ITask>): Promise<ITask | null> {
+    if (data.title) {
+      data.titleNormalized = data.title.toUpperCase().replace(/\s+/g, '');
+    }
     return await Task.findByIdAndUpdate(id, data, { new: true });
   }
 

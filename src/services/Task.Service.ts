@@ -6,6 +6,8 @@ const repo = () => new TaskRepository();
 
 export class TaskService {
   async createTaskService(title: string, description: string, userId: string, priority?: string, dueDate?: Date) {
+    const existing = await repo().findByTitleNormalizedTaskRepository(title.toUpperCase().replace(/\s+/g, ''));
+    if (existing) throw new Error('Título já existe');
     return repo().createTaskRepository(title, description, userId, priority, dueDate);
   }
 
@@ -21,6 +23,12 @@ export class TaskService {
 
   async updateTaskService(id: string, data: Partial<ITask>) {
     const task = await this.findByIdTaskService(id);
+    if(task.isDeleted) throw new Error('Tarefa deletada');
+    if(!task) throw new Error('Tarefa não encontrada');
+    const existingTitleNormalizado = await repo().findByTitleNormalizedTaskRepository(data.title?.toUpperCase().replace(/\s+/g, '') || '');
+    if (existingTitleNormalizado && existingTitleNormalizado._id.toString() !== id) {
+      throw new Error('Título já existe');
+    }
     const updateData: Partial<ITask> = { ...data };
 
     if (data.status && data.status !== task.status) {
