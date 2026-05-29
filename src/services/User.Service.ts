@@ -72,4 +72,8 @@ export class UserService {
     await this.findByIdUserService(userId);
     await repo().invalidateRefreshTokenUserRepository(userId);
   }
+
+  async findAllUsersService() {
+    return repo().findAllUsersRepository();
+  }
 }

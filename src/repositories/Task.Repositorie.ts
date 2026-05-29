@@ -15,6 +15,10 @@ export class TaskRepository {
     return await Task.find({ userId: new Types.ObjectId(userId), isDeleted: false });
   }
 
+  async findAllTasksRepository(): Promise<ITask[]> {
+    return await Task.find({ isDeleted: false });
+  }
+
   async updateTaskRepository(id: string, data: Partial<ITask>): Promise<ITask | null> {
     return await Task.findByIdAndUpdate(id, data, { new: true });
   }

@@ -24,6 +24,17 @@ export class TaskService {
     const updateData: Partial<ITask> = { ...data };
 
     if (data.status && data.status !== task.status) {
+      const transitions: Record<string, string[]> = {
+        'PENDING':     ['IN_PROGRESS', 'CANCELLED'],
+        'IN_PROGRESS': ['DONE', 'CANCELLED'],
+        'DONE':        [],
+        'CANCELLED':   [],
+      };
+
+      const allowed = transitions[task.status];
+      if (!allowed.includes(data.status))
+        throw new Error(`Transição inválida: ${task.status} → ${data.status}`);
+
       if (data.status === 'IN_PROGRESS') updateData.startedAt = new Date();
       if (data.status === 'DONE')        updateData.completedAt = new Date();
     }
@@ -35,5 +46,9 @@ export class TaskService {
     const task = await this.findByIdTaskService(id);
     if (task.isDeleted) throw new Error('Tarefa já deletada');
     await repo().softDeleteTaskRepository(id);
+  }
+
+  async findAllTasksService() {
+    return repo().findAllTasksRepository();
   }
 }

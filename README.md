@@ -107,11 +107,64 @@ npm run dev
 
 ## Modelo de Tarefa
 
-O campo `status` aceita os valores: `pendente`, `em andamento`, `concluída`.
+### Campos
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `title` | string | Título da tarefa (3-120 caracteres) |
+| `description` | string | Descrição da tarefa (máx. 1000 caracteres) |
+| `status` | enum | Status atual da tarefa |
+| `priority` | enum | Prioridade da tarefa |
+| `userId` | ObjectId | Referência ao usuário dono da tarefa |
+| `dueDate` | Date | Data limite para conclusão |
+| `startedAt` | Date | Preenchido automaticamente ao iniciar |
+| `completedAt` | Date | Preenchido automaticamente ao concluir |
+| `isDeleted` | boolean | Soft delete |
+| `deletedAt` | Date | Data do soft delete |
+
+### Status
+
+| Valor | Descrição |
+|-------|-----------|
+| `PENDING` | Tarefa criada, aguardando início |
+| `IN_PROGRESS` | Tarefa em andamento |
+| `DONE` | Tarefa concluída |
+| `CANCELLED` | Tarefa cancelada |
+
+### Prioridade
+
+| Valor | Descrição |
+|-------|-----------|
+| `LOW` | Baixa prioridade |
+| `MEDIUM` | Média prioridade (default) |
+| `HIGH` | Alta prioridade |
+
+### Máquina de Estados
+
+As transições de status seguem regras estritas implementadas no Service:
+
+```
+PENDING ──→ IN_PROGRESS ──→ DONE
+   │              │
+   └──────────────┴──→ CANCELLED
+```
+
+| De | Para | Permitido |
+|----|------|-----------|
+| `PENDING` | `IN_PROGRESS` | ✅ |
+| `PENDING` | `CANCELLED` | ✅ |
+| `IN_PROGRESS` | `DONE` | ✅ |
+| `IN_PROGRESS` | `CANCELLED` | ✅ |
+| `DONE` | qualquer | ❌ |
+| `CANCELLED` | qualquer | ❌ |
+
+Transições inválidas retornam `400 Bad Request`.
+
+### Datas Automáticas
 
 As datas são preenchidas automaticamente pela lógica de negócio no Service:
-- `startedAt` — preenchido ao mudar para `"em andamento"`
-- `completedAt` — preenchido ao mudar para `"concluída"`
+- `startedAt` — preenchido ao mudar para `IN_PROGRESS`
+- `completedAt` — preenchido ao mudar para `DONE`
 
 Isso permite calcular o **tempo médio de conclusão** de tarefas (`completedAt - startedAt`).
 

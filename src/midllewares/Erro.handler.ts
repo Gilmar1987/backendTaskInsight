@@ -68,10 +68,21 @@ const notFoundMessages = [
 if (notFoundMessages.includes(err.message)) {
     return res.status(404).json({
         message: 'Not Found Error',
-        errors: [{
-            path: [],
-            message: err.message
-        }]
+        errors: [{ path: [], message: err.message }]
+    });
+}
+
+if (err.message === 'Credenciais inválidas') {
+    return res.status(401).json({
+        message: 'Unauthorized',
+        errors: [{ path: [], message: err.message }]
+    });
+}
+
+if (err.message.startsWith('Transição inválida') || err.message.includes('já deletad')) {
+    return res.status(400).json({
+        message: 'Bad Request',
+        errors: [{ path: [], message: err.message }]
     });
 }
 

@@ -7,7 +7,8 @@ export const envSchema = z.object({
   JWT_SECRET: z.string().min(32),
   JWT_EXPIRES_IN: z.string().default('60m'),
   JWT_REFRESH_SECRET: z.string().min(32),
-  JWT_REFRESH_EXPIRES_IN: z.string().default('7d')
+  JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
+  FRONTEND_URL: z.string().url().default('http://localhost:3001'),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
