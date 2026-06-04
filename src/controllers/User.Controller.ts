@@ -65,4 +65,23 @@ export class UserController {
       return res.status(200).json({ success: true, data: users });
     } catch (err) { next(err); }
   }
+
+  async forgotPasswordController(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { email } = req.body;
+      if (!email) return res.status(400).json({ success: false, message: 'Email obrigatório' });
+      await service.forgotPasswordUserService(email);
+      // Sempre retorna 200 para não revelar se o email existe
+      return res.status(200).json({ success: true, message: 'Se o email existir, você receberá as instruções em breve.' });
+    } catch (err) { next(err); }
+  }
+
+  async resetPasswordController(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { token, password } = req.body;
+      if (!token || !password) return res.status(400).json({ success: false, message: 'Token e senha obrigatórios' });
+      await service.resetPasswordUserService(token, password);
+      return res.status(200).json({ success: true, message: 'Senha redefinida com sucesso.' });
+    } catch (err) { next(err); }
+  }
 }

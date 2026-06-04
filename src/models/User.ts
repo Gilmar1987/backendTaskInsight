@@ -8,17 +8,21 @@ export interface IUser extends Document {
   refreshToken?: string;
   isDeleted: boolean;
   deletedAt: Date | null;
+  resetPasswordToken?: string;
+  resetPasswordExpires?: Date;
 }
 
 const userSchema = new Schema<IUser>(
   {
-    name:         { type: String, required: true },
-    email:        { type: String, required: true, unique: true },
-    password:     { type: String, required: true, select: false },
-    role:         { type: String, enum: ['user', 'admin'], default: 'user' },
-    refreshToken: { type: String, select: false },
-    isDeleted:    { type: Boolean, default: false },
-    deletedAt:    { type: Date, default: null },
+    name:                 { type: String, required: true },
+    email:                { type: String, required: true, unique: true },
+    password:             { type: String, required: true, select: false },
+    role:                 { type: String, enum: ['user', 'admin'], default: 'user' },
+    refreshToken:         { type: String, select: false },
+    isDeleted:            { type: Boolean, default: false },
+    deletedAt:            { type: Date, default: null },
+    resetPasswordToken:   { type: String, select: false },
+    resetPasswordExpires: { type: Date, select: false },
   },
   { timestamps: true }
 );

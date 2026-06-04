@@ -5,6 +5,8 @@ import { generateTokens } from '../config/jwt';
 import { env } from '../config/env';
 import bcrypt from 'bcrypt';
 import jwt, { JwtPayload } from 'jsonwebtoken';
+import crypto from 'crypto';
+import { Resend } from 'resend';
 
 const repo = () => new UserRepository();
 
@@ -94,5 +96,44 @@ export class UserService {
 
   async findAllUsersService() {
     return repo().findAllUsersRepository();
+  }
+
+  async forgotPasswordUserService(email: string) {
+    const user = await repo().findByEmailUserRepository(email);
+    if (!user || user.isDeleted) return; // não revelar se email existe
+
+    const token   = crypto.randomBytes(32).toString('hex');
+    const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
+    await repo().saveResetTokenRepository(user.id, token, expires);
+
+    const resetUrl = `${env.FRONTEND_URL}/reset-password?token=${token}`;
+    const resend = new Resend(env.RESEND_API_KEY);
+
+    // Envia em segundo plano — não bloqueia a resposta ao usuário
+    resend.emails.send({
+      from:    'TaskFlow <onboarding@resend.dev>',
+      to:      user.email,
+      subject: 'Recuperação de senha — TaskFlow',
+      html: `
+        <div style="font-family:sans-serif;max-width:480px;margin:auto">
+          <h2 style="color:#7c3aed">Recuperação de senha</h2>
+          <p>Olá, <strong>${user.name}</strong>!</p>
+          <p>Recebemos uma solicitação para redefinir a senha da sua conta.</p>
+          <p>Clique no botão abaixo para criar uma nova senha. O link é válido por <strong>1 hora</strong>.</p>
+          <a href="${resetUrl}" style="display:inline-block;margin:16px 0;padding:12px 24px;background:#7c3aed;color:#fff;border-radius:8px;text-decoration:none;font-weight:bold">
+            Redefinir senha
+          </a>
+          <p style="color:#888;font-size:12px">Se você não solicitou isso, ignore este email. Sua senha permanece a mesma.</p>
+        </div>
+      `,
+    }).catch((err: unknown) => console.error('[Email] Erro ao enviar recuperação de senha:', err));
+  }
+
+  async resetPasswordUserService(token: string, newPassword: string) {
+    const user = await repo().findByResetTokenRepository(token);
+    if (!user) throw new Error('Token inválido ou expirado');
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await repo().clearResetTokenRepository(user.id, hashed);
   }
 }
