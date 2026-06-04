@@ -1,14 +1,30 @@
 // [Skill: service]
 import { TaskRepository } from '../repositories/Task.Repositorie';
+import { UserRepository } from '../repositories/User.Repositorie';
 import { ITask, IDeadlineHistoryEntry } from '../models/Task';
+import { emailService } from './Email.service';
 
 const repo = () => new TaskRepository();
+const userRepo = () => new UserRepository();
 
 export class TaskService {
   async createTaskService(title: string, description: string, userId: string, priority?: string, dueDate?: Date) {
     const existing = await repo().findByTitleNormalizedTaskRepository(title.toUpperCase().replace(/\s+/g, ''));
     if (existing) throw new Error('Título já existe');
-    return repo().createTaskRepository(title, description, userId, priority, dueDate);
+
+    const task = await repo().createTaskRepository(title, description, userId, priority, dueDate);
+
+    const user = await userRepo().findByIdUserRepository(userId);
+    if (user) {
+      emailService.sendTaskCreatedEmail(
+        { email: user.email, name: user.name },
+        { title: task.title, dueDate: dueDate || null }
+      ).catch(() => {
+          console.error('[Email Error]: Falha ao enviar notificação de nova tarefa');
+      });
+    }
+
+    return task;
   }
 
   async findByIdTaskService(id: string) {
@@ -23,8 +39,7 @@ export class TaskService {
 
   async updateTaskService(id: string, data: Partial<ITask>, deadlineChangeReason?: string) {
     const task = await this.findByIdTaskService(id);
-    if(task.isDeleted) throw new Error('Tarefa deletada');
-    if(!task) throw new Error('Tarefa não encontrada');
+    if (task.isDeleted) throw new Error('Tarefa deletada');
     const existingTitleNormalizado = await repo().findByTitleNormalizedTaskRepository(data.title?.toUpperCase().replace(/\s+/g, '') || '');
     if (existingTitleNormalizado && existingTitleNormalizado._id.toString() !== id) {
       throw new Error('Título já existe');

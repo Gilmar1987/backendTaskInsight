@@ -13,6 +13,6 @@ taskRouter.get('/',       authMiddleware, roleMiddleware(['user', 'admin']), (re
 taskRouter.get('/all',    authMiddleware, roleMiddleware(['admin']),         (req, res, next) => controller.findAllTasksController(req, res, next));
 taskRouter.get('/:id',    authMiddleware, roleMiddleware(['user', 'admin']), validarIdMiddleware, (req, res, next) => controller.findByIdTaskController(req, res, next));
 taskRouter.put('/:id',    authMiddleware, roleMiddleware(['user', 'admin']), validarIdMiddleware, (req, res, next) => controller.updateTaskController(req, res, next));
-taskRouter.delete('/:id', authMiddleware, roleMiddleware(['user','admin']),         validarIdMiddleware, (req, res, next) => controller.deleteTaskController(req, res, next));
+taskRouter.delete('/:id', authMiddleware, roleMiddleware(['user','admin']),  validarIdMiddleware, (req, res, next) => controller.deleteTaskController(req, res, next));
 
 export { taskRouter };

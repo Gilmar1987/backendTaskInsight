@@ -53,7 +53,7 @@ export class UserService {
     const user = await this.findByIdUserService(userId);
     if(!user) throw new Error('Usuário não encontrado');
     if(user.isDeleted) throw new Error('Usuário já deletado');
-    if(user.role === 'admin') throw new Error('Não é possível excluir um administrador');
+    
     await repo().softDeleteUserRepository(userId);
   }
 
