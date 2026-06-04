@@ -3,6 +3,13 @@ import { Schema, model, Document, Types } from 'mongoose';
 export type TaskStatus = 'PENDING' | 'IN_PROGRESS' | 'DONE' | 'CANCELLED';
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH';
 
+export interface IDeadlineHistoryEntry {
+  oldDate: Date | null;
+  newDate: Date;
+  reason: string;
+  changedAt: Date;
+}
+
 export interface ITask extends Document {
   title: string;
   titleNormalized: string;
@@ -13,6 +20,7 @@ export interface ITask extends Document {
   startedAt: Date | null;
   completedAt: Date | null;
   dueDate: Date | null;
+  deadlineHistory: IDeadlineHistoryEntry[];
   isDeleted: boolean;
   deletedAt: Date | null;
 }
@@ -72,6 +80,18 @@ const taskSchema = new Schema<ITask>(
     dueDate: {
       type: Date,
       default: null
+    },
+
+    deadlineHistory: {
+      type: [
+        {
+          oldDate:   { type: Date,   default: null },
+          newDate:   { type: Date,   required: true },
+          reason:    { type: String, required: true, trim: true, maxlength: 500 },
+          changedAt: { type: Date,   required: true, default: Date.now }
+        }
+      ],
+      default: []
     },
 
     isDeleted: {

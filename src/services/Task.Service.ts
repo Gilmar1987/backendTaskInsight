@@ -1,6 +1,6 @@
 // [Skill: service]
 import { TaskRepository } from '../repositories/Task.Repositorie';
-import { ITask } from '../models/Task';
+import { ITask, IDeadlineHistoryEntry } from '../models/Task';
 
 const repo = () => new TaskRepository();
 
@@ -21,7 +21,7 @@ export class TaskService {
     return repo().findAllByUserTaskRepository(userId);
   }
 
-  async updateTaskService(id: string, data: Partial<ITask>) {
+  async updateTaskService(id: string, data: Partial<ITask>, deadlineChangeReason?: string) {
     const task = await this.findByIdTaskService(id);
     if(task.isDeleted) throw new Error('Tarefa deletada');
     if(!task) throw new Error('Tarefa não encontrada');
@@ -45,6 +45,16 @@ export class TaskService {
 
       if (data.status === 'IN_PROGRESS') updateData.startedAt = new Date();
       if (data.status === 'DONE')        updateData.completedAt = new Date();
+    }
+
+    if (data.dueDate && deadlineChangeReason) {
+      const entry: IDeadlineHistoryEntry = {
+        oldDate:   task.dueDate ?? null,
+        newDate:   data.dueDate,
+        reason:    deadlineChangeReason,
+        changedAt: new Date(),
+      };
+      updateData.deadlineHistory = [...(task.deadlineHistory ?? []), entry];
     }
 
     return repo().updateTaskRepository(id, updateData);

@@ -31,7 +31,8 @@ export class TaskController {
   async updateTaskController(req: Request, res: Response, next: NextFunction) {
     try {
       const data = UpdateTaskSchema.parse(req.body);
-      const task = await service.updateTaskService(req.params.id, data);
+      const { deadlineChangeReason, ...taskData } = data;
+      const task = await service.updateTaskService(req.params.id, taskData as any, deadlineChangeReason);
       return res.status(200).json({ success: true, data: task });
     } catch (err) { next(err); }
   }

@@ -8,9 +8,10 @@ export const CreateTaskSchema = z.object({
 });
 
 export const UpdateTaskSchema = z.object({
-  title:       z.string().min(3).max(120).optional(),
-  description: z.string().min(1).max(1000).optional(),
-  status:      z.enum(['PENDING', 'IN_PROGRESS', 'DONE', 'CANCELLED']).optional(),
-  priority:    z.enum(['LOW', 'MEDIUM', 'HIGH']).optional(),
-  dueDate:     z.string().datetime().optional().transform((value) => value ? new Date(value) : undefined),
+  title:                z.string().min(3).max(120).optional(),
+  description:          z.string().min(1).max(1000).optional(),
+  status:               z.enum(['PENDING', 'IN_PROGRESS', 'DONE', 'CANCELLED']).optional(),
+  priority:             z.enum(['LOW', 'MEDIUM', 'HIGH']).optional(),
+  dueDate:              z.string().datetime().optional().transform((value) => value ? new Date(value) : undefined),
+  deadlineChangeReason: z.string().min(1).max(500).optional(),
 });
