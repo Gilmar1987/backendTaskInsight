@@ -8,8 +8,10 @@ import { roleMiddleware } from '../midllewares/Role.midlleware';
 const userRouter = Router();
 const controller = new UserController();
 
-userRouter.post('/register', (req, res, next) => controller.createUserController(req, res, next));
-userRouter.post('/login',    (req, res, next) => controller.loginUserController(req, res, next));
+userRouter.post('/register',        (req, res, next) => controller.createUserController(req, res, next));
+userRouter.post('/login',           (req, res, next) => controller.loginUserController(req, res, next));
+userRouter.post('/forgot-password', (req, res, next) => controller.forgotPasswordController(req, res, next));
+userRouter.post('/reset-password',  (req, res, next) => controller.resetPasswordController(req, res, next));
 userRouter.get('/',          authMiddleware, roleMiddleware(['admin']), (req, res, next) => controller.findAllUsersController(req, res, next));
 userRouter.get('/:id',       authMiddleware, roleMiddleware(['user', 'admin']), validarIdMiddleware, (req, res, next) => controller.findByIdUserController(req, res, next));
 userRouter.put('/:id',       authMiddleware, roleMiddleware(['user', 'admin']), validarIdMiddleware, (req, res, next) => controller.updateUserController(req, res, next));

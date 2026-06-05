@@ -42,4 +42,23 @@ export class UserRepository {
     async findByEmailWithPasswordRepository(email: string): Promise<IUser | null> {
         return await User.findOne({ email }).select('+password');
     }
+
+    async saveResetTokenRepository(userId: string, token: string, expires: Date): Promise<void> {
+        await User.findByIdAndUpdate(userId, { resetPasswordToken: token, resetPasswordExpires: expires });
+    }
+
+    async findByResetTokenRepository(token: string): Promise<IUser | null> {
+        return await User.findOne({
+            resetPasswordToken: token,
+            resetPasswordExpires: { $gt: new Date() },
+        }).select('+password +resetPasswordToken +resetPasswordExpires');
+    }
+
+    async clearResetTokenRepository(userId: string, newPasswordHash: string): Promise<void> {
+        await User.findByIdAndUpdate(userId, {
+            password: newPasswordHash,
+            resetPasswordToken: undefined,
+            resetPasswordExpires: undefined,
+        });
+    }
 }
