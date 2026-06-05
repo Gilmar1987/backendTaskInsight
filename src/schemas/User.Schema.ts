@@ -17,3 +17,8 @@ export const UpdateUserSchema = z.object({
   email: z.string().check(z.email({ message: "Endereço de e-mail inválido" })).optional(),
   password: z.string().min(6, 'A senha deve conter no mínimo 6 caracteres').optional(),
 });
+
+export const RefreshTokenSchema = z.object({
+  refreshToken: z.string().min(1, 'Refresh token é obrigatório'),
+});
+

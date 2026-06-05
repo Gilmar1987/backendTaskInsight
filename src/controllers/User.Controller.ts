@@ -1,7 +1,7 @@
 // [Skill: controller]
 import { Request, Response, NextFunction } from 'express';
 import { UserService } from '../services/User.Service';
-import { UserSchema, LoginSchema, UpdateUserSchema } from '../schemas/User.Schema';
+import { UserSchema, LoginSchema, UpdateUserSchema, RefreshTokenSchema } from '../schemas/User.Schema';
 
 const service = new UserService();
 
@@ -18,6 +18,14 @@ export class UserController {
     try {
       const { email, password } = LoginSchema.parse(req.body);
       const result = await service.loginUserService(email, password);
+      return res.status(200).json({ success: true, data: result });
+    } catch (err) { next(err); }
+  }
+
+  async refreshTokenUserController(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { refreshToken } = RefreshTokenSchema.parse(req.body);
+      const result = await service.refreshTokenUserService(refreshToken);
       return res.status(200).json({ success: true, data: result });
     } catch (err) { next(err); }
   }

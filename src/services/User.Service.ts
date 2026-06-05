@@ -2,7 +2,9 @@
 import { UserRepository } from '../repositories/User.Repositorie';
 import { IUser } from '../models/User';
 import { generateTokens } from '../config/jwt';
+import { env } from '../config/env';
 import bcrypt from 'bcrypt';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 
 const repo = () => new UserRepository();
 
@@ -65,7 +67,24 @@ export class UserService {
     if (!isPasswordValid) throw new Error('Credenciais inválidas');
 
     const { token, refreshToken } = generateTokens(user.id, user.role);
+    await repo().updateRefreshTokenUserRepository(user.id, refreshToken);
     return { user, token, refreshToken };
+  }
+
+  async refreshTokenUserService(refreshToken: string) {
+    const user = await repo().findByRefreshTokenUserRepository(refreshToken);
+    if (!user) throw new Error('Refresh token inválido');
+
+    try {
+      jwt.verify(refreshToken, env.JWT_REFRESH_SECRET) as JwtPayload;
+    } catch {
+      await repo().invalidateRefreshTokenUserRepository(user.id);
+      throw new Error('Refresh token expirado');
+    }
+
+    const { token, refreshToken: newRefreshToken } = generateTokens(user.id, user.role);
+    await repo().updateRefreshTokenUserRepository(user.id, newRefreshToken);
+    return { token, refreshToken: newRefreshToken };
   }
 
   async logoutUserService(userId: string) {

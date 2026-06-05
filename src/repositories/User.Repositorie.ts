@@ -23,7 +23,7 @@ export class UserRepository {
     }
 
     async findByRefreshTokenUserRepository(refreshToken: string): Promise<IUser | null> {
-        return await User.findOne({ refreshToken: refreshToken }).select('+password');
+        return await User.findOne({ refreshToken });
     }
 
     async invalidateRefreshTokenUserRepository(userId: string): Promise<void> {
