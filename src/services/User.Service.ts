@@ -108,7 +108,10 @@ export class UserService {
 
     const resetUrl = `${env.FRONTEND_URL}/reset-password?token=${token}`;
 
-    emailService.sendPasswordResetEmail(user, resetUrl).catch((err: unknown) => console.error('[Email] Erro ao enviar recuperação de senha:', err));
+    emailService.sendPasswordResetEmail(user, resetUrl).catch((err: unknown) => {
+      const message = err instanceof Error ? err.message.replace(/[\r\n]/g, ' ') : 'Erro desconhecido';
+      console.error('[Email] Erro ao enviar recuperação de senha:', message);
+    });
   }
 
   async resetPasswordUserService(token: string, newPassword: string) {

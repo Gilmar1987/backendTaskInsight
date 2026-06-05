@@ -12,6 +12,7 @@ API RESTful para gestão de tarefas com autenticação JWT, construída com Node
 - **JWT** (jsonwebtoken) — autenticação e refresh token
 - **Zod** — validação de schemas
 - **Bcrypt** — hash de senhas
+- **Nodemailer** — envio de emails (recuperação de senha)
 - **Helmet** + **CORS** + **Compression** — segurança e performance
 
 ---
@@ -70,6 +71,11 @@ JWT_SECRET=<min_32_caracteres>
 JWT_EXPIRES_IN=60m
 JWT_REFRESH_SECRET=<min_32_caracteres>
 JWT_REFRESH_EXPIRES_IN=7d
+FRONTEND_URL=http://localhost:3001
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=<seu_email>
+SMTP_PASS=<sua_senha_de_app>
 ```
 
 Inicie em modo desenvolvimento:
@@ -87,11 +93,15 @@ npm run dev
 | Método | Rota | Descrição | Auth |
 |--------|------|-----------|------|
 | POST | `/register` | Criar usuário | ❌ |
-| POST | `/login` | Login | ❌ |
-| GET | `/:id` | Buscar usuário | ❌ |
-| PUT | `/:id` | Atualizar usuário | ❌ |
-| DELETE | `/:id` | Soft delete | ❌ |
-| POST | `/:id/logout` | Logout | ✅ |
+| POST | `/login` | Login e geração de tokens | ❌ |
+| POST | `/refresh` | Renovar access token via refresh token | ❌ |
+| POST | `/forgot-password` | Solicitar recuperação de senha | ❌ |
+| POST | `/reset-password` | Redefinir senha com token | ❌ |
+| GET | `/` | Listar todos os usuários | ✅ Admin |
+| GET | `/:id` | Buscar usuário por ID | ✅ |
+| PUT | `/:id` | Atualizar usuário | ✅ |
+| DELETE | `/:id` | Soft delete | ✅ |
+| POST | `/:id/logout` | Logout e invalidação do refresh token | ✅ |
 
 ### Tasks `/api/tasks`
 
@@ -102,6 +112,34 @@ npm run dev
 | GET | `/:id` | Buscar tarefa por ID | ✅ |
 | PUT | `/:id` | Atualizar tarefa | ✅ |
 | DELETE | `/:id` | Soft delete | ✅ |
+
+---
+
+## Fluxo de Autenticação JWT
+
+```
+POST /login  ──→  { token, refreshToken }
+                        │
+              token expira (60m)
+                        │
+POST /refresh ──→  { token, refreshToken }  (rotação automática)
+                        │
+POST /:id/logout ──→  refreshToken invalidado no banco
+```
+
+- O `token` (access token) tem validade curta (default `60m`)
+- O `refreshToken` tem validade longa (default `7d`) e é armazenado no banco
+- A cada `/refresh`, um novo par de tokens é emitido (rotação)
+- No logout, o `refreshToken` é invalidado, impedindo renovações futuras
+
+---
+
+## Recuperação de Senha
+
+```
+POST /forgot-password  ──→  envia email com link (válido 1h)
+POST /reset-password   ──→  redefine senha com token do email
+```
 
 ---
 
