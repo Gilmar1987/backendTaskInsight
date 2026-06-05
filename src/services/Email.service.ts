@@ -31,6 +31,19 @@ class EmailService {
              <p>Atenciosamente,<br/>Equipe TaskInsight</p>`
     });
   }
+
+  async sendPasswordResetEmail(user: { email: string; name: string }, resetUrl: string) {
+    await this.transporter.sendMail({
+      from: `"TaskInsight" <${env.SMTP_USER}>`,
+      to: user.email,
+      subject: 'Recuperação de senha — TaskInsight',
+      html: `<h2>Recuperação de senha</h2>
+             <p>Olá, <strong>${user.name}</strong>!</p>
+             <p>Clique no link abaixo para redefinir sua senha. O link é válido por <strong>1 hora</strong>.</p>
+             <a href="${resetUrl}">Redefinir senha</a>
+             <p>Se você não solicitou isso, ignore este email.</p>`
+    });
+  }
 }
 
 export const emailService = new EmailService();
