@@ -9,6 +9,7 @@ const userRouter = Router();
 const controller = new UserController();
 
 userRouter.post('/register',        (req, res, next) => controller.createUserController(req, res, next));
+userRouter.get('/confirm-email',    (req, res, next) => controller.confirmEmailController(req, res, next));
 userRouter.post('/login',           (req, res, next) => controller.loginUserController(req, res, next));
 userRouter.post('/refresh',         (req, res, next) => controller.refreshTokenUserController(req, res, next));
 userRouter.post('/forgot-password', (req, res, next) => controller.forgotPasswordController(req, res, next));

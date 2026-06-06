@@ -61,4 +61,16 @@ export class UserRepository {
             resetPasswordExpires: undefined,
         });
     }
+
+    async saveConfirmTokenRepository(userId: string, token: string): Promise<void> {
+        await User.findByIdAndUpdate(userId, { emailConfirmToken: token });
+    }
+
+    async confirmEmailRepository(token: string): Promise<IUser | null> {
+        return User.findOneAndUpdate(
+            { emailConfirmToken: token },
+            { emailConfirmed: true, emailConfirmToken: undefined },
+            { new: true }
+        ).select('+emailConfirmToken');
+    }
 }

@@ -113,6 +113,43 @@ class EmailService {
     }
   }
 
+  async sendWelcomeEmail(user: { email: string; name: string }, confirmUrl: string) {
+    const content = `
+      <h1 style="margin:0 0 8px;font-size:22px;color:#1e1b4b;">Bem-vindo ao TaskFlow! &#9889;</h1>
+      <p style="margin:0 0 28px;color:#6b7280;font-size:15px;">Ol&aacute;, <strong style="color:#1e1b4b;">${user.name}</strong>! Sua conta foi criada com sucesso. Clique no bot&atilde;o abaixo para confirmar seu e-mail e come&ccedil;ar a usar o TaskFlow.</p>
+
+      <div style="text-align:center;margin-bottom:28px;">
+        <a href="${confirmUrl}" style="display:inline-block;background-color:#7C3AED;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:10px;font-size:15px;font-weight:600;">
+          Confirmar minha conta
+        </a>
+      </div>
+
+      <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#fef9ff;border-radius:10px;border:1px solid #ede9fe;margin-bottom:20px;">
+        <tr>
+          <td style="padding:14px 16px;">
+            <p style="margin:0;font-size:13px;color:#7c3aed;font-weight:600;">&#8987; Link v&aacute;lido por 24 horas</p>
+            <p style="margin:6px 0 0;font-size:13px;color:#6b7280;">Ap&oacute;s esse prazo, entre em contato com o suporte para reenviar o link.</p>
+          </td>
+        </tr>
+      </table>
+
+      <p style="margin:0;font-size:13px;color:#9ca3af;text-align:center;">
+        Se voc&ecirc; n&atilde;o criou esta conta, ignore este email &mdash; ela ser&aacute; removida automaticamente.
+      </p>`;
+
+    try {
+      const info = await this.transporter.sendMail({
+        from: `"TaskFlow" <${env.SMTP_USER}>`,
+        to: user.email,
+        subject: '⚡ Confirme sua conta — TaskFlow',
+        html: this.baseTemplate(content),
+      });
+      console.log(`[Email] Boas-vindas enviado para ${user.email} — ID: ${info.messageId}`);
+    } catch (error) {
+      console.error(`[Email] Falha ao enviar boas-vindas para ${user.email}:`, error);
+    }
+  }
+
   async sendPasswordResetEmail(user: { email: string; name: string }, resetUrl: string) {
     const content = `
       <h1 style="margin:0 0 8px;font-size:22px;color:#1e1b4b;">Recuperação de senha</h1>

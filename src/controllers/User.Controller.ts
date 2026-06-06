@@ -71,9 +71,13 @@ export class UserController {
       const { email } = req.body;
       if (!email) return res.status(400).json({ success: false, message: 'Email obrigatório' });
       await service.forgotPasswordUserService(email);
-      // Sempre retorna 200 para não revelar se o email existe
-      return res.status(200).json({ success: true, message: 'Se o email existir, você receberá as instruções em breve.' });
-    } catch (err) { next(err); }
+      return res.status(200).json({ success: true, message: 'Email de recuperação enviado.' });
+    } catch (err: any) {
+      if (err?.message === 'EMAIL_NOT_REGISTERED') {
+        return res.status(404).json({ success: false, message: 'Email não cadastrado. Verifique o endereço e tente novamente.' });
+      }
+      next(err);
+    }
   }
 
   async resetPasswordController(req: Request, res: Response, next: NextFunction) {
@@ -83,5 +87,19 @@ export class UserController {
       await service.resetPasswordUserService(token, password);
       return res.status(200).json({ success: true, message: 'Senha redefinida com sucesso.' });
     } catch (err) { next(err); }
+  }
+
+  async confirmEmailController(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { token } = req.query as { token?: string };
+      if (!token) return res.status(400).json({ success: false, message: 'Token obrigatório' });
+      await service.confirmEmailService(token);
+      return res.status(200).json({ success: true, message: 'Email confirmado com sucesso.' });
+    } catch (err: any) {
+      if (err?.message === 'TOKEN_INVALIDO') {
+        return res.status(400).json({ success: false, message: 'Link de confirmação inválido ou já utilizado.' });
+      }
+      next(err);
+    }
   }
 }

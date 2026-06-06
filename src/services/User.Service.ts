@@ -16,7 +16,24 @@ export class UserService {
       throw new Error('Email já cadastrado');
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    return repo().createUserRepository(name, email, hashedPassword, role);
+    const user = await repo().createUserRepository(name, email, hashedPassword, role);
+
+    const confirmToken = crypto.randomBytes(32).toString('hex');
+    await repo().saveConfirmTokenRepository(user.id, confirmToken);
+
+    const confirmUrl = `${env.FRONTEND_URL}/confirm-email?token=${confirmToken}`;
+    emailService.sendWelcomeEmail({ email: user.email, name: user.name }, confirmUrl).catch((err: unknown) => {
+      const message = err instanceof Error ? err.message.replace(/[\r\n]/g, ' ') : 'Erro desconhecido';
+      console.error('[Email] Erro ao enviar boas-vindas:', message);
+    });
+
+    return user;
+  }
+
+  async confirmEmailService(token: string) {
+    const user = await repo().confirmEmailRepository(token);
+    if (!user) throw new Error('TOKEN_INVALIDO');
+    return user;
   }
 
   async findByEmailUserService(email: string) {
@@ -100,7 +117,7 @@ export class UserService {
 
   async forgotPasswordUserService(email: string) {
     const user = await repo().findByEmailUserRepository(email);
-    if (!user || user.isDeleted) return; // não revelar se email existe
+    if (!user || user.isDeleted) throw new Error('EMAIL_NOT_REGISTERED');
 
     const token   = crypto.randomBytes(32).toString('hex');
     const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
