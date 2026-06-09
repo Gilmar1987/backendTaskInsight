@@ -80,6 +80,15 @@ if (err.message === 'Credenciais inválidas') {
     });
 }
 
+if(err.message === 'A data  de vencimento é obrigatória' || 
+    err.message === 'A data de vencimento deve ser no futuro' ||
+    err.message === 'Data inválida') {
+    return res.status(400).json({
+        message: 'Bad Request',
+        errors: [{ path: [], message: err.message }]
+    });
+}
+
 if (err.message.startsWith('Transição inválida') || err.message.includes('já deletad')) {
     return res.status(400).json({
         message: 'Bad Request',

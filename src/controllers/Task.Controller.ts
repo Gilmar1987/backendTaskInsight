@@ -9,7 +9,7 @@ export class TaskController {
   async createTaskController(req: Request, res: Response, next: NextFunction) {
     try {
       const data = CreateTaskSchema.parse(req.body);
-      const task = await service.createTaskService(data.title, data.description, req.user!.id, data.priority, data.dueDate);
+      const task = await service.createTaskService(data.title, data.description, req.user!.id, data.dueDate, data.priority, );
       return res.status(201).json({ success: true, data: task });
     } catch (err) { next(err); }
   }
