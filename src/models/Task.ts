@@ -19,7 +19,7 @@ export interface ITask extends Document {
   userId: Types.ObjectId;
   startedAt: Date | null;
   completedAt: Date | null;
-  dueDate: Date | null;
+  dueDate: Date ;
   deadlineHistory: IDeadlineHistoryEntry[];
   isDeleted: boolean;
   deletedAt: Date | null;
@@ -79,7 +79,8 @@ const taskSchema = new Schema<ITask>(
 
     dueDate: {
       type: Date,
-      default: null
+      required: [true, 'Data de vencimento é obrigatória']
+      
     },
 
     deadlineHistory: {
