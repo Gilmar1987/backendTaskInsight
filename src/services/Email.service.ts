@@ -9,6 +9,9 @@ class EmailService {
       host: env.SMTP_HOST,
       port: Number(env.SMTP_PORT),
       secure: false,
+      tls: {
+        rejectUnauthorized: false
+      },
       auth: {
         user: env.SMTP_USER,
         pass: env.SMTP_PASS
@@ -18,6 +21,7 @@ class EmailService {
 
   async sendTaskCreatedEmail(user: { email: string; name: string }, task: { title: string; dueDate: Date | null }) {
     await this.transporter.sendMail({
+      
       from: `"TaskInsight" <${env.SMTP_USER}>`,
       to: user.email,
       subject: `Nova tarefa atribuída: ${task.title}`,
