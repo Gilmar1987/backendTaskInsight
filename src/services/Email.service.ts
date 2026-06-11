@@ -2,7 +2,7 @@ import nodemailer from 'nodemailer';
 import { env } from '../config/env';
 
 class EmailService {
-  private transporter;
+  private transporter: nodemailer.Transporter;
 
   constructor() {
     this.transporter = nodemailer.createTransport({
@@ -21,7 +21,7 @@ class EmailService {
 
   async sendTaskCreatedEmail(user: { email: string; name: string }, task: { title: string; dueDate: Date | null }) {
     await this.transporter.sendMail({
-      
+
       from: `"TaskInsight" <${env.SMTP_USER}>`,
       to: user.email,
       subject: `Nova tarefa atribuída: ${task.title}`,
@@ -32,7 +32,13 @@ class EmailService {
                ${task.dueDate ? `<li><strong>Data de vencimento:</strong> ${task.dueDate.toLocaleDateString('pt-BR')}</li>` : ''}
              </ul>
              <p>Acesse o sistema para mais detalhes.</p>
-             <p>Atenciosamente,<br/>Equipe TaskInsight</p>`
+             <p>Atenciosamente,<br/>Equipe TaskInsight</p>`,
+
+        headers: {
+        'X-Priority': '1',
+        'X-MSMail-Priority': 'High',
+        'Importance': 'High'
+      }
     });
   }
 
