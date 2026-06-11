@@ -13,6 +13,8 @@ export const envSchema = z.object({
   SMTP_PORT: z.string().default('587'),
   SMTP_USER: z.string().email(),
   SMTP_PASS: z.string(),
+  BREVO_API_KEY: z.string().min(1, 'A chave da API do Brevo é obrigatória'),
+  BCRYPT_SALT_ROUNDS: z.string().default('10'),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);

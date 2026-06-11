@@ -17,7 +17,7 @@ export class TaskService {
     const user = await userRepo().findByIdUserRepository(userId);
     if (user) {
       try {
-      emailService.sendTaskCreatedEmail(
+      await emailService.sendTaskCreatedEmail(
         { email: user.email, name: user.name },
         { title: task.title, dueDate: dueDate  },
       );
