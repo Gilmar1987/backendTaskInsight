@@ -16,12 +16,15 @@ export class TaskService {
 
     const user = await userRepo().findByIdUserRepository(userId);
     if (user) {
+      try {
       emailService.sendTaskCreatedEmail(
         { email: user.email, name: user.name },
-        { title: task.title, dueDate: dueDate  }
-      ).catch(() => {
-          console.error('[Email Error]: Falha ao enviar notificação de nova tarefa', Error);
-      });
+        { title: task.title, dueDate: dueDate  },
+      );
+      console.log(`[Email]: Notificação de nova tarefa enviada para ${user.email}`);
+      } catch (error) {
+        console.error('[Email Error]: Falha ao enviar notificação de nova tarefa', error);
+      }
     }
 
     return task;
