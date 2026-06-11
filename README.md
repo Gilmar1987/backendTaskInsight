@@ -217,3 +217,6 @@ O arquivo `.amazonq/rules/apiNode-agent.md` é um protocolo operacional que inst
 - Proibir lógica de negócio no Controller ou Repository
 - Proibir o uso do tipo `any`
 - Rastrear toda geração de código com etiquetas de skill (ex: `// [Skill: service]`)
+
+
+### Contribuiçãosões são bem-vindas! Sinta-se à vontade para abrir issues ou pull requests para
