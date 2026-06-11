@@ -20,7 +20,7 @@ export class TaskService {
         { email: user.email, name: user.name },
         { title: task.title, dueDate: dueDate  }
       ).catch(() => {
-          console.error('[Email Error]: Falha ao enviar notificação de nova tarefa');
+          console.error('[Email Error]: Falha ao enviar notificação de nova tarefa', Error);
       });
     }
 
