@@ -1,27 +1,34 @@
 import nodemailer from 'nodemailer';
+import SMTPTransport from 'nodemailer/lib/smtp-transport'; // 1. Importe a tipagem de SMTP
 import { env } from '../config/env';
+
+
 
 class EmailService {
   private transporter: nodemailer.Transporter;
 
   constructor() {
-    this.transporter = nodemailer.createTransport({
-      host: env.SMTP_HOST,
-      port: Number(env.SMTP_PORT),
-      secure: false,
-      tls: {
-        rejectUnauthorized: false
-      },
+    // 2. Defina explicitamente o objeto com a tipagem do SMTP
+    const smtpOptions: SMTPTransport.Options = {
+      host: '64.233.186.108', // Força o IPv4 do Gmail para evitar o erro ENETUNREACH
+      port: Number(env.SMTP_PORT), // Geralmente 587
+      secure: false, // false para 587
       auth: {
         user: env.SMTP_USER,
         pass: env.SMTP_PASS
+      },
+      tls: {
+        rejectUnauthorized: false,
+        // 3. O 'servername' precisa obrigatoriamente ficar aqui dentro para o TLS validar o certificado do Gmail
+        servername: env.SMTP_HOST || 'smtp.gmail.com' 
       }
-    });
+    };
+
+    this.transporter = nodemailer.createTransport(smtpOptions);
   }
 
   async sendTaskCreatedEmail(user: { email: string; name: string }, task: { title: string; dueDate: Date | null }) {
     await this.transporter.sendMail({
-
       from: `"TaskInsight" <${env.SMTP_USER}>`,
       to: user.email,
       subject: `Nova tarefa atribuída: ${task.title}`,
@@ -33,8 +40,7 @@ class EmailService {
              </ul>
              <p>Acesse o sistema para mais detalhes.</p>
              <p>Atenciosamente,<br/>Equipe TaskInsight</p>`,
-
-        headers: {
+      headers: {
         'X-Priority': '1',
         'X-MSMail-Priority': 'High',
         'Importance': 'High'
@@ -57,3 +63,4 @@ class EmailService {
 }
 
 export const emailService = new EmailService();
+export default emailService;
