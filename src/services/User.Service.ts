@@ -16,7 +16,8 @@ export class UserService {
       throw new Error('Email já cadastrado');
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    return repo().createUserRepository(name, email, hashedPassword, role);
+    const user = await repo().createUserRepository(name, email, hashedPassword, role);
+    return user.toObject();
   }
 
   async findByEmailUserService(email: string) {
@@ -28,7 +29,8 @@ export class UserService {
   async findByIdUserService(id: string) {
     const user = await repo().findByIdUserRepository(id);
     if (!user) throw new Error('Usuário não encontrado');
-    return user;
+
+    return user.toObject();
   }
 
   async updateUserService(userId: string, updateData: Partial<IUser>) {
@@ -36,7 +38,9 @@ export class UserService {
     const existEmail = await repo().findByEmailUserRepository(updateData.email || '');
     if (existEmail && existEmail.id !== userId)
       throw new Error('Email já cadastrado por outro usuário');
-    return repo().updateUserRepository(userId, updateData);
+
+    const user = await repo().updateUserRepository(userId, updateData);
+    return user?.toObject() || null;
   }
 
   async updateRefreshTokenUserService(userId: string, refreshToken: string) {
@@ -55,9 +59,9 @@ export class UserService {
 
   async softDeleteUserService(userId: string) {
     const user = await this.findByIdUserService(userId);
-    if(!user) throw new Error('Usuário não encontrado');
-    if(user.isDeleted) throw new Error('Usuário já deletado');
-    
+    if (!user) throw new Error('Usuário não encontrado');
+    if (user.isDeleted) throw new Error('Usuário já deletado');
+
     await repo().softDeleteUserRepository(userId);
   }
 
@@ -70,7 +74,8 @@ export class UserService {
 
     const { token, refreshToken } = generateTokens(user.id, user.role);
     await repo().updateRefreshTokenUserRepository(user.id, refreshToken);
-    return { user, token, refreshToken };
+
+    return { user: user.toObject(), token, refreshToken };
   }
 
   async refreshTokenUserService(refreshToken: string) {
@@ -95,14 +100,16 @@ export class UserService {
   }
 
   async findAllUsersService() {
-    return repo().findAllUsersRepository();
-  }
+    const users = await repo().findAllUsersRepository();
+    return users.map(u => u.toObject());
+  };
+
 
   async forgotPasswordUserService(email: string) {
     const user = await repo().findByEmailUserRepository(email);
     if (!user || user.isDeleted) return; // não revelar se email existe
 
-    const token   = crypto.randomBytes(32).toString('hex');
+    const token = crypto.randomBytes(32).toString('hex');
     const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
     await repo().saveResetTokenRepository(user.id, token, expires);
 

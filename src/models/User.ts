@@ -27,6 +27,20 @@ const userSchema = new Schema<IUser>(
   { timestamps: true }
 );
 
+// Remove campos sensíveis ao converter para objeto/JSON
+const removeSensitive = (doc: any, ret: any) => {
+  if (ret) {
+    delete ret.password;
+    delete ret.refreshToken;
+    delete ret.resetPasswordToken;
+    delete ret.resetPasswordExpires;
+  }
+  return ret;
+};
+
+userSchema.set('toJSON', { transform: removeSensitive });
+userSchema.set('toObject', { transform: removeSensitive });
+
 export const User = model<IUser>('User', userSchema);
 export type UserType = InferSchemaType<typeof userSchema>;
 export default User;

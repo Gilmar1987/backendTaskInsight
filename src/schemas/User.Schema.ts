@@ -22,3 +22,7 @@ export const RefreshTokenSchema = z.object({
   refreshToken: z.string().min(1, 'Refresh token é obrigatório'),
 });
 
+// Novo schemas para garantir que a senha e tokens não sejam expostos
+export const UserResponseSchema = UserSchema.omit({ password: true }).catchall(z.any());
+
+export const UserListResponseSchema = z.array(UserResponseSchema);

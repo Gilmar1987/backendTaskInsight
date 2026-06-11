@@ -1,7 +1,7 @@
 // [Skill: controller]
 import { Request, Response, NextFunction } from 'express';
 import { UserService } from '../services/User.Service';
-import { UserSchema, LoginSchema, UpdateUserSchema, RefreshTokenSchema } from '../schemas/User.Schema';
+import { UserSchema, LoginSchema, UpdateUserSchema, RefreshTokenSchema, UserResponseSchema, UserListResponseSchema} from '../schemas/User.Schema';
 
 const service = new UserService();
 
@@ -10,7 +10,8 @@ export class UserController {
     try {
       const data = UserSchema.parse(req.body);
       const user = await service.createUserService(data.name, data.email, data.password, data.role);
-      return res.status(201).json({ success: true, data: user });
+      const userResponse = UserResponseSchema.parse(user);
+      return res.status(201).json({ success: true, data: userResponse });
     } catch (err) { next(err); }
   }
 
@@ -18,7 +19,8 @@ export class UserController {
     try {
       const { email, password } = LoginSchema.parse(req.body);
       const result = await service.loginUserService(email, password);
-      return res.status(200).json({ success: true, data: result });
+      const userResponse = UserResponseSchema.parse(result.user);
+      return res.status(200).json({ success: true, data: { user: userResponse, token: result.token, refreshToken: result.refreshToken } });
     } catch (err) { next(err); }
   }
 
@@ -33,7 +35,9 @@ export class UserController {
   async findByIdUserController(req: Request, res: Response, next: NextFunction) {
     try {
       const user = await service.findByIdUserService(req.params.id);
-      return res.status(200).json({ success: true, data: user });
+
+      const userResponse = UserResponseSchema.parse(user);
+      return res.status(200).json({ success: true, data: userResponse });
     } catch (err) { next(err); }
   }
 
@@ -41,7 +45,8 @@ export class UserController {
     try {
       const data = UpdateUserSchema.parse(req.body);
       const user = await service.updateUserService(req.params.id, data);
-      return res.status(200).json({ success: true, data: user });
+      const userResponse = UserResponseSchema.parse(user);
+      return res.status(200).json({ success: true, data: userResponse });
     } catch (err) { next(err); }
   }
 
@@ -62,7 +67,9 @@ export class UserController {
   async findAllUsersController(req: Request, res: Response, next: NextFunction) {
     try {
       const users = await service.findAllUsersService();
-      return res.status(200).json({ success: true, data: users });
+
+      const usersResponse = UserListResponseSchema.parse(users);
+      return res.status(200).json({ success: true, data: usersResponse });
     } catch (err) { next(err); }
   }
 
