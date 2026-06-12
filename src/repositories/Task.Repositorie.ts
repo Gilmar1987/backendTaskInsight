@@ -8,8 +8,8 @@ export class TaskRepository {
     return await Task.create({ title, titleNormalized, description, userId: new Types.ObjectId(userId), priority, dueDate });
   }
 
-  async findByTitleNormalizedTaskRepository(titleNormalized: string): Promise<ITask | null> {
-    return await Task.findOne({ titleNormalized, isDeleted: false });
+  async findByTitleNormalizedTaskRepository(titleNormalized: string, userId: string): Promise<ITask | null> {
+    return await Task.findOne({ titleNormalized, userId, isDeleted: false });
   }
 
   async findByIdTaskRepository(id: string): Promise<ITask | null> {
