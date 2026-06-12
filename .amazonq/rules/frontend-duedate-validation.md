@@ -28,10 +28,11 @@ export const taskFormSchema = z.object({
       return !isNaN(date.getTime());
     }, { message: 'Data inválida' })
     .refine((val) => {
-      const date = new Date(val);
+      const [year, month, day] = val.split('-').map(Number);
+      const date = new Date(year, month - 1, day);
       const today = new Date();
       today.setHours(0, 0, 0, 0); // Compara apenas a data, ignorando o horário
-      return date > today;
+      return date >= today;
     }, { message: 'A data de vencimento deve ser no futuro' }),
 });
 ```
