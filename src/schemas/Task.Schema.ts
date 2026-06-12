@@ -5,9 +5,16 @@ const dueDateSchema = z.string({ message: 'A data de vencimento é obrigatória'
   .trim()
   .min(1, 'A data de vencimento é obrigatória')
   .regex(dateRegex, 'Data deve estar no formato YYYY-MM-DD')
-  .transform((val) => new Date(val))
+  .transform((val) => {
+    const [year, month, day] = val.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  })
   .refine((date) => date instanceof Date && !isNaN(date.getTime()), { message: 'Data inválida' })
-  .refine((date) => date > new Date(), { message: 'A data de vencimento deve ser no futuro' });
+  .refine((date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Zera o horário para comparar apenas a data
+    return date >= today;
+  }, { message: 'A data de vencimento deve ser no futuro' });
 
 
 export const CreateTaskSchema = z.object({
@@ -24,4 +31,10 @@ export const UpdateTaskSchema = z.object({
   priority:             z.enum(['LOW', 'MEDIUM', 'HIGH']).optional(),
   dueDate:              dueDateSchema.optional(),
   deadlineChangeReason: z.string().min(1).max(500).optional(),
+}).refine((data) => {
+  if (data.dueDate && !data.deadlineChangeReason) return false;
+  return true;
+}, {
+  message: 'O motivo da prorrogação é obrigatório ao alterar a data de vencimento',
+  path: ['deadlineChangeReason'],
 });

@@ -269,9 +269,15 @@ import { useRouter } from 'next/navigation';
 import { authService } from '@/services/auth.service';
 import { useAuthStore } from '@/store/auth.store';
 
+const passwordValidation = z.string()
+  .min(6, 'A senha deve conter no mínimo 6 caracteres')
+  .regex(/[A-Z]/, 'Pelo menos uma letra maiúscula')
+  .regex(/[0-9]/, 'Pelo menos um número')
+  .regex(/[^a-zA-Z0-9]/, 'Pelo menos um caractere especial');
+
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
-  password: z.string().min(6, 'Mínimo 6 caracteres'),
+  password: passwordValidation,
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
