@@ -1,20 +1,64 @@
 import { z } from 'zod';
 
 const dateRegex = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
-const dueDateSchema = z.string({ message: 'A data de vencimento é obrigatória' })
-  .trim()
-  .min(1, 'A data de vencimento é obrigatória')
-  .regex(dateRegex, 'Data deve estar no formato YYYY-MM-DD')
-  .transform((val) => {
-    const [year, month, day] = val.split('-').map(Number);
-    return new Date(year, month - 1, day);
-  })
-  .refine((date) => date instanceof Date && !isNaN(date.getTime()), { message: 'Data inválida' })
-  .refine((date) => {
+const dueDateSchema = z.string({
+  message: 'A data de vencimento é obrigatória'
+})
+.trim()
+.min(1, 'A data de vencimento é obrigatória')
+.regex(dateRegex, 'Data deve estar no formato YYYY-MM-DD')
+
+.transform((val) => {
+  const [year, month, day] = val.split('-').map(Number);
+
+  const date = new Date(
+    year,
+    month - 1,
+    day,
+    23,
+    59,
+    59,
+    999
+  );
+
+  return {
+    date,
+    year,
+    month,
+    day
+  };
+})
+
+.refine(
+  ({ date, year, month, day }) => {
+    return (
+      date.getFullYear() === year &&
+      date.getMonth() + 1 === month &&
+      date.getDate() === day
+    );
+  },
+  {
+    message: 'Data inválida'
+  }
+)
+
+.transform(({ date }) => date)
+
+.refine(
+  (date) => {
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Zera o horário para comparar apenas a data
+    today.setHours(0, 0, 0, 0);
+
     return date >= today;
-  }, { message: 'A data de vencimento deve ser no futuro' });
+  },
+  {
+    message: 'A data de vencimento não pode ser anterior à data atual'
+  }
+);
+
+
+
+
 
 
 export const CreateTaskSchema = z.object({
