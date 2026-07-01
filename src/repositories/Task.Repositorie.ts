@@ -1,10 +1,11 @@
 // [Skill: repository]
 import { ITask, Task } from '../models/Task';
 import { Types } from 'mongoose';
+import { normalizeTitle } from '../utils/normalizeTitle';
 
 export class TaskRepository {
   async createTaskRepository(title: string, description: string, userId: string, priority?: string, dueDate?: Date): Promise<ITask> {
-    const titleNormalized = title.toUpperCase().replace(/\s+/g, '');
+    const titleNormalized = normalizeTitle(title);
     return await Task.create({ title, titleNormalized, description, userId: new Types.ObjectId(userId), priority, dueDate });
   }
 
@@ -26,7 +27,7 @@ export class TaskRepository {
 
   async updateTaskRepository(id: string, data: Partial<ITask>): Promise<ITask | null> {
     if (data.title) {
-      data.titleNormalized = data.title.toUpperCase().replace(/\s+/g, '');
+      data.titleNormalized = normalizeTitle(data.title);
     }
     return await Task.findByIdAndUpdate(id, data, { new: true });
   }

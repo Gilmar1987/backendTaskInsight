@@ -1,52 +1,54 @@
 // [Skill: controller]
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { TaskService } from '../services/Task.Service';
 import { CreateTaskSchema, UpdateTaskSchema } from '../schemas/Task.Schema';
+import { asyncHandler } from '../utils/asyncHandler';
+import { sendSuccess } from '../utils/httpResponse';
 
 const service = new TaskService();
 
 export class TaskController {
-  async createTaskController(req: Request, res: Response, next: NextFunction) {
-    try {
-      const data = CreateTaskSchema.parse(req.body);
-      const task = await service.createTaskService(data.title, data.description, req.user!.id, data.dueDate, data.priority, );
-      return res.status(201).json({ success: true, data: task });
-    } catch (err) { next(err); }
-  }
+  createTaskController = asyncHandler(async (req: Request, res: Response) => {
+    const data = CreateTaskSchema.parse(req.body);
+    const task = await service.createTaskService(
+      data.title,
+      data.description,
+      req.user!.id,
+      data.dueDate,
+      data.priority,
+    );
+    return sendSuccess(res, 201, task);
+  });
 
-  async findAllByUserTaskController(req: Request, res: Response, next: NextFunction) {
-    try {
+  findAllByUserTaskController = asyncHandler(
+    async (req: Request, res: Response) => {
       const tasks = await service.findAllByUserTaskService(req.user!.id);
-      return res.status(200).json({ success: true, data: tasks });
-    } catch (err) { next(err); }
-  }
+      return sendSuccess(res, 200, tasks);
+    },
+  );
 
-  async findByIdTaskController(req: Request, res: Response, next: NextFunction) {
-    try {
-      const task = await service.findByIdTaskService(req.params.id);
-      return res.status(200).json({ success: true, data: task });
-    } catch (err) { next(err); }
-  }
+  findByIdTaskController = asyncHandler(async (req: Request, res: Response) => {
+    const task = await service.findByIdTaskService(req.params.id);
+    return sendSuccess(res, 200, task);
+  });
 
-  async updateTaskController(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { deadlineChangeReason, ...taskData } = UpdateTaskSchema.parse(req.body);
-      const task = await service.updateTaskService(req.params.id, taskData, deadlineChangeReason);
-      return res.status(200).json({ success: true, data: task });
-    } catch (err) { next(err); }
-  }
+  updateTaskController = asyncHandler(async (req: Request, res: Response) => {
+    const { deadlineChangeReason, ...taskData } = UpdateTaskSchema.parse(req.body);
+    const task = await service.updateTaskService(
+      req.params.id,
+      taskData,
+      deadlineChangeReason,
+    );
+    return sendSuccess(res, 200, task);
+  });
 
-  async deleteTaskController(req: Request, res: Response, next: NextFunction) {
-    try {
-      await service.deleteTaskService(req.params.id);
-      return res.status(204).send();
-    } catch (err) { next(err); }
-  }
+  deleteTaskController = asyncHandler(async (req: Request, res: Response) => {
+    await service.deleteTaskService(req.params.id);
+    return res.status(204).send();
+  });
 
-  async findAllTasksController(req: Request, res: Response, next: NextFunction) {
-    try {
-      const tasks = await service.findAllTasksService();
-      return res.status(200).json({ success: true, data: tasks });
-    } catch (err) { next(err); }
-  }
+  findAllTasksController = asyncHandler(async (req: Request, res: Response) => {
+    const tasks = await service.findAllTasksService();
+    return sendSuccess(res, 200, tasks);
+  });
 }

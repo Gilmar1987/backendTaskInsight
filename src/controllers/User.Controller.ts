@@ -1,94 +1,92 @@
 // [Skill: controller]
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { UserService } from '../services/User.Service';
-import { UserSchema, LoginSchema, UpdateUserSchema, RefreshTokenSchema, UserResponseSchema, UserListResponseSchema} from '../schemas/User.Schema';
+import {
+  UserSchema,
+  LoginSchema,
+  UpdateUserSchema,
+  RefreshTokenSchema,
+  UserResponseSchema,
+  UserListResponseSchema,
+} from '../schemas/User.Schema';
+import { asyncHandler } from '../utils/asyncHandler';
+import { sendMessage, sendSuccess } from '../utils/httpResponse';
 
 const service = new UserService();
 
 export class UserController {
-  async createUserController(req: Request, res: Response, next: NextFunction) {
-    try {
-      const data = UserSchema.parse(req.body);
-      const user = await service.createUserService(data.name, data.email, data.password, data.role);
-      const userResponse = UserResponseSchema.parse(user);
-      return res.status(201).json({ success: true, data: userResponse });
-    } catch (err) { next(err); }
-  }
+  createUserController = asyncHandler(async (req: Request, res: Response) => {
+    const data = UserSchema.parse(req.body);
+    const user = await service.createUserService(
+      data.name,
+      data.email,
+      data.password,
+      data.role,
+    );
+    const userResponse = UserResponseSchema.parse(user);
+    return sendSuccess(res, 201, userResponse);
+  });
 
-  async loginUserController(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { email, password } = LoginSchema.parse(req.body);
-      const result = await service.loginUserService(email, password);
-      const userResponse = UserResponseSchema.parse(result.user);
-      return res.status(200).json({ success: true, data: { user: userResponse, token: result.token, refreshToken: result.refreshToken } });
-    } catch (err) { next(err); }
-  }
+  loginUserController = asyncHandler(async (req: Request, res: Response) => {
+    const { email, password } = LoginSchema.parse(req.body);
+    const result = await service.loginUserService(email, password);
+    const userResponse = UserResponseSchema.parse(result.user);
+    return sendSuccess(res, 200, {
+      user: userResponse,
+      token: result.token,
+      refreshToken: result.refreshToken,
+    });
+  });
 
-  async refreshTokenUserController(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { refreshToken } = RefreshTokenSchema.parse(req.body);
-      const result = await service.refreshTokenUserService(refreshToken);
-      return res.status(200).json({ success: true, data: result });
-    } catch (err) { next(err); }
-  }
+  refreshTokenUserController = asyncHandler(async (
+    req: Request,
+    res: Response,
+  ) => {
+    const { refreshToken } = RefreshTokenSchema.parse(req.body);
+    const result = await service.refreshTokenUserService(refreshToken);
+    return sendSuccess(res, 200, result);
+  });
 
-  async findByIdUserController(req: Request, res: Response, next: NextFunction) {
-    try {
-      const user = await service.findByIdUserService(req.params.id);
+  findByIdUserController = asyncHandler(async (req: Request, res: Response) => {
+    const user = await service.findByIdUserService(req.params.id);
+    const userResponse = UserResponseSchema.parse(user);
+    return sendSuccess(res, 200, userResponse);
+  });
 
-      const userResponse = UserResponseSchema.parse(user);
-      return res.status(200).json({ success: true, data: userResponse });
-    } catch (err) { next(err); }
-  }
+  updateUserController = asyncHandler(async (req: Request, res: Response) => {
+    const data = UpdateUserSchema.parse(req.body);
+    const user = await service.updateUserService(req.params.id, data);
+    const userResponse = UserResponseSchema.parse(user);
+    return sendSuccess(res, 200, userResponse);
+  });
 
-  async updateUserController(req: Request, res: Response, next: NextFunction) {
-    try {
-      const data = UpdateUserSchema.parse(req.body);
-      const user = await service.updateUserService(req.params.id, data);
-      const userResponse = UserResponseSchema.parse(user);
-      return res.status(200).json({ success: true, data: userResponse });
-    } catch (err) { next(err); }
-  }
+  softDeleteUserController = asyncHandler(async (req: Request, res: Response) => {
+    await service.softDeleteUserService(req.params.id);
+    return res.status(204).send();
+  });
 
-  async softDeleteUserController(req: Request, res: Response, next: NextFunction) {
-    try {
-      await service.softDeleteUserService(req.params.id);
-      return res.status(204).send();
-    } catch (err) { next(err); }
-  }
+  logoutUserController = asyncHandler(async (req: Request, res: Response) => {
+    await service.logoutUserService(req.params.id);
+    return res.status(204).send();
+  });
 
-  async logoutUserController(req: Request, res: Response, next: NextFunction) {
-    try {
-      await service.logoutUserService(req.params.id);
-      return res.status(204).send();
-    } catch (err) { next(err); }
-  }
+  findAllUsersController = asyncHandler(async (req: Request, res: Response) => {
+    const users = await service.findAllUsersService();
+    const usersResponse = UserListResponseSchema.parse(users);
+    return sendSuccess(res, 200, usersResponse);
+  });
 
-  async findAllUsersController(req: Request, res: Response, next: NextFunction) {
-    try {
-      const users = await service.findAllUsersService();
+  forgotPasswordController = asyncHandler(async (req: Request, res: Response) => {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ success: false, message: 'Email obrigatório' });
+    await service.forgotPasswordUserService(email);
+    return sendMessage(res, 200, 'Se o email existir, você receberá as instruções em breve.');
+  });
 
-      const usersResponse = UserListResponseSchema.parse(users);
-      return res.status(200).json({ success: true, data: usersResponse });
-    } catch (err) { next(err); }
-  }
-
-  async forgotPasswordController(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { email } = req.body;
-      if (!email) return res.status(400).json({ success: false, message: 'Email obrigatório' });
-      await service.forgotPasswordUserService(email);
-      // Sempre retorna 200 para não revelar se o email existe
-      return res.status(200).json({ success: true, message: 'Se o email existir, você receberá as instruções em breve.' });
-    } catch (err) { next(err); }
-  }
-
-  async resetPasswordController(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { token, password } = req.body;
-      if (!token || !password) return res.status(400).json({ success: false, message: 'Token e senha obrigatórios' });
-      await service.resetPasswordUserService(token, password);
-      return res.status(200).json({ success: true, message: 'Senha redefinida com sucesso.' });
-    } catch (err) { next(err); }
-  }
+  resetPasswordController = asyncHandler(async (req: Request, res: Response) => {
+    const { token, password } = req.body;
+    if (!token || !password) return res.status(400).json({ success: false, message: 'Token e senha obrigatórios' });
+    await service.resetPasswordUserService(token, password);
+    return sendMessage(res, 200, 'Senha redefinida com sucesso.');
+  });
 }
