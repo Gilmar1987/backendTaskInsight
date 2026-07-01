@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { ZodError } from "zod";
+import { sendError } from "../utils/httpResponse";
 
 
 // Interface para erros personalizados
@@ -33,13 +34,7 @@ if (err instanceof ZodError) {
 
 //Erro do banco de dados
 if (err.code === 11000) {
-    return res.status(409).json({
-        message: 'Conflict Error',
-        errors: [{
-            path: [],
-            message: 'Email já cadastrado'
-        }]
-    });
+    return sendError(res, 409, 'Conflict Error', 'Email já cadastrado');
 }
 
 // Erros de regras de negocio
@@ -51,13 +46,7 @@ const conflictMessages = [
 ];
 
 if (conflictMessages.includes(err.message)) {
-    return res.status(409).json({
-        message: 'Conflict Error',
-        errors: [{
-            path: [],
-            message: err.message
-        }]
-    });
+    return sendError(res, 409, 'Conflict Error', err.message);
 }
 
 const notFoundMessages = [
@@ -67,33 +56,21 @@ const notFoundMessages = [
 ];
 
 if (notFoundMessages.includes(err.message)) {
-    return res.status(404).json({
-        message: 'Not Found Error',
-        errors: [{ path: [], message: err.message }]
-    });
+    return sendError(res, 404, 'Not Found Error', err.message);
 }
 
 if (err.message === 'Credenciais inválidas') {
-    return res.status(401).json({
-        message: 'Unauthorized',
-        errors: [{ path: [], message: err.message }]
-    });
+    return sendError(res, 401, 'Unauthorized', err.message);
 }
 
-if(err.message === 'A data  de vencimento é obrigatória' || 
+if(err.message === 'A data  de vencimento é obrigatória' ||
     err.message === 'A data de vencimento deve ser no futuro' ||
     err.message === 'Data inválida') {
-    return res.status(400).json({
-        message: 'Bad Request',
-        errors: [{ path: [], message: err.message }]
-    });
+    return sendError(res, 400, 'Bad Request', err.message);
 }
 
 if (err.message.startsWith('Transição inválida') || err.message.includes('já deletad')) {
-    return res.status(400).json({
-        message: 'Bad Request',
-        errors: [{ path: [], message: err.message }]
-    });
+    return sendError(res, 400, 'Bad Request', err.message);
 }
 
 const statusCode = err.statusCode || 500;
