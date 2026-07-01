@@ -10,7 +10,6 @@ export const UserSchema = z.object({
   name: z.string().min(1, 'O nome é obrigatório'),
   email: z.string().check(z.email({ message: "Endereço de e-mail inválido" })),
   password: passwordValidation,
-  role: z.enum(['user', 'admin']).default('user')
 });
 
 export const LoginSchema = z.object({
@@ -26,6 +25,15 @@ export const UpdateUserSchema = z.object({
 
 export const RefreshTokenSchema = z.object({
   refreshToken: z.string().min(1, 'Refresh token é obrigatório'),
+});
+
+export const ForgotPasswordSchema = z.object({
+  email: z.string().check(z.email({ message: "Endereço de e-mail inválido" })),
+});
+
+export const ResetPasswordSchema = z.object({
+  token: z.string().min(1, 'Token é obrigatório'),
+  password: passwordValidation,
 });
 
 // Novo schemas para garantir que a senha e tokens não sejam expostos

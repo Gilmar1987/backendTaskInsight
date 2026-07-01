@@ -4,6 +4,7 @@ import { UserController } from '../controllers/User.Controller';
 import { validarIdMiddleware } from '../midllewares/ValidarId.midlleware';
 import { authMiddleware } from '../midllewares/Auth.midlleware';
 import { roleMiddleware } from '../midllewares/Role.midlleware';
+import { selfOrAdminMiddleware } from '../midllewares/Ownership.midlleware';
 
 const userRouter = Router();
 const controller = new UserController();
@@ -14,9 +15,9 @@ userRouter.post('/refresh',         (req, res, next) => controller.refreshTokenU
 userRouter.post('/forgot-password', (req, res, next) => controller.forgotPasswordController(req, res, next));
 userRouter.post('/reset-password',  (req, res, next) => controller.resetPasswordController(req, res, next));
 userRouter.get('/',          authMiddleware, roleMiddleware(['admin']), (req, res, next) => controller.findAllUsersController(req, res, next));
-userRouter.get('/:id',       authMiddleware, roleMiddleware(['user', 'admin']), validarIdMiddleware, (req, res, next) => controller.findByIdUserController(req, res, next));
-userRouter.put('/:id',       authMiddleware, roleMiddleware(['user', 'admin']), validarIdMiddleware, (req, res, next) => controller.updateUserController(req, res, next));
-userRouter.delete('/:id',    authMiddleware, roleMiddleware(['user', 'admin']), validarIdMiddleware, (req, res, next) => controller.softDeleteUserController(req, res, next));
-userRouter.post('/:id/logout', authMiddleware, roleMiddleware(['user', 'admin']), validarIdMiddleware, (req, res, next) => controller.logoutUserController(req, res, next));
+userRouter.get('/:id',       authMiddleware, roleMiddleware(['user', 'admin']), validarIdMiddleware, selfOrAdminMiddleware, (req, res, next) => controller.findByIdUserController(req, res, next));
+userRouter.put('/:id',       authMiddleware, roleMiddleware(['user', 'admin']), validarIdMiddleware, selfOrAdminMiddleware, (req, res, next) => controller.updateUserController(req, res, next));
+userRouter.delete('/:id',    authMiddleware, roleMiddleware(['user', 'admin']), validarIdMiddleware, selfOrAdminMiddleware, (req, res, next) => controller.softDeleteUserController(req, res, next));
+userRouter.post('/:id/logout', authMiddleware, roleMiddleware(['user', 'admin']), validarIdMiddleware, selfOrAdminMiddleware, (req, res, next) => controller.logoutUserController(req, res, next));
 
 export { userRouter };

@@ -7,7 +7,17 @@ import { emailService } from './Email.service';
 const repo = () => new TaskRepository();
 const userRepo = () => new UserRepository();
 
+interface Requester {
+  id: string;
+  role: 'user' | 'admin';
+}
+
 export class TaskService {
+  private ensureOwnership(task: ITask, requester: Requester) {
+    if (requester.role !== 'admin' && task.userId.toString() !== requester.id)
+      throw new Error('Acesso negado');
+  }
+
   async createTaskService(title: string, description: string, userId: string, dueDate: Date, priority?: string, ) {
     const existing = await repo().findByTitleNormalizedTaskRepository(title.toUpperCase().replace(/\s+/g, ''), userId);
     if (existing) throw new Error('Título já existe');
@@ -30,9 +40,10 @@ export class TaskService {
     return task;
   }
 
-  async findByIdTaskService(id: string) {
+  async findByIdTaskService(id: string, requester: Requester) {
     const task = await repo().findByIdTaskRepository(id);
     if (!task) throw new Error('Tarefa não encontrada');
+    this.ensureOwnership(task, requester);
     return task;
   }
 
@@ -40,8 +51,8 @@ export class TaskService {
     return repo().findAllByUserTaskRepository(userId);
   }
 
-  async updateTaskService(id: string, data: Partial<ITask>, deadlineChangeReason?: string) {
-    const task = await this.findByIdTaskService(id);
+  async updateTaskService(id: string, data: Partial<ITask>, requester: Requester, deadlineChangeReason?: string) {
+    const task = await this.findByIdTaskService(id, requester);
     if (task.isDeleted) throw new Error('Tarefa deletada');
     const existingTitleNormalizado = await repo().findByTitleNormalizedTaskRepository(data.title?.toUpperCase().replace(/\s+/g, '') || '', task.userId.toString());
     if (existingTitleNormalizado && existingTitleNormalizado._id.toString() !== id) {
@@ -78,8 +89,8 @@ export class TaskService {
     return repo().updateTaskRepository(id, updateData);
   }
 
-  async deleteTaskService(id: string) {
-    const task = await this.findByIdTaskService(id);
+  async deleteTaskService(id: string, requester: Requester) {
+    const task = await this.findByIdTaskService(id, requester);
     if (task.isDeleted) throw new Error('Tarefa já deletada');
     await repo().softDeleteTaskRepository(id);
   }

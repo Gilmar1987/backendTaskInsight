@@ -80,6 +80,13 @@ if (err.message === 'Credenciais inválidas') {
     });
 }
 
+if (err.message === 'Acesso negado') {
+    return res.status(403).json({
+        message: 'Forbidden',
+        errors: [{ path: [], message: err.message }]
+    });
+}
+
 if(err.message === 'A data  de vencimento é obrigatória' || 
     err.message === 'A data de vencimento deve ser no futuro' ||
     err.message === 'Data inválida') {
