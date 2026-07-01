@@ -1,7 +1,7 @@
 // [Skill: controller]
 import { Request, Response, NextFunction } from 'express';
 import { UserService } from '../services/User.Service';
-import { UserSchema, LoginSchema, UpdateUserSchema, RefreshTokenSchema, UserResponseSchema, UserListResponseSchema} from '../schemas/User.Schema';
+import { UserSchema, LoginSchema, UpdateUserSchema, RefreshTokenSchema, UserResponseSchema, UserListResponseSchema, ForgotPasswordSchema, ResetPasswordSchema } from '../schemas/User.Schema';
 
 const service = new UserService();
 
@@ -9,7 +9,7 @@ export class UserController {
   async createUserController(req: Request, res: Response, next: NextFunction) {
     try {
       const data = UserSchema.parse(req.body);
-      const user = await service.createUserService(data.name, data.email, data.password, data.role);
+      const user = await service.createUserService(data.name, data.email, data.password);
       const userResponse = UserResponseSchema.parse(user);
       return res.status(201).json({ success: true, data: userResponse });
     } catch (err) { next(err); }
@@ -75,8 +75,7 @@ export class UserController {
 
   async forgotPasswordController(req: Request, res: Response, next: NextFunction) {
     try {
-      const { email } = req.body;
-      if (!email) return res.status(400).json({ success: false, message: 'Email obrigatório' });
+      const { email } = ForgotPasswordSchema.parse(req.body);
       await service.forgotPasswordUserService(email);
       // Sempre retorna 200 para não revelar se o email existe
       return res.status(200).json({ success: true, message: 'Se o email existir, você receberá as instruções em breve.' });
@@ -85,8 +84,7 @@ export class UserController {
 
   async resetPasswordController(req: Request, res: Response, next: NextFunction) {
     try {
-      const { token, password } = req.body;
-      if (!token || !password) return res.status(400).json({ success: false, message: 'Token e senha obrigatórios' });
+      const { token, password } = ResetPasswordSchema.parse(req.body);
       await service.resetPasswordUserService(token, password);
       return res.status(200).json({ success: true, message: 'Senha redefinida com sucesso.' });
     } catch (err) { next(err); }

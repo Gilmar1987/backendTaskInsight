@@ -23,7 +23,7 @@ export class TaskController {
 
   async findByIdTaskController(req: Request, res: Response, next: NextFunction) {
     try {
-      const task = await service.findByIdTaskService(req.params.id);
+      const task = await service.findByIdTaskService(req.params.id, req.user!);
       return res.status(200).json({ success: true, data: task });
     } catch (err) { next(err); }
   }
@@ -31,14 +31,14 @@ export class TaskController {
   async updateTaskController(req: Request, res: Response, next: NextFunction) {
     try {
       const { deadlineChangeReason, ...taskData } = UpdateTaskSchema.parse(req.body);
-      const task = await service.updateTaskService(req.params.id, taskData, deadlineChangeReason);
+      const task = await service.updateTaskService(req.params.id, taskData, req.user!, deadlineChangeReason);
       return res.status(200).json({ success: true, data: task });
     } catch (err) { next(err); }
   }
 
   async deleteTaskController(req: Request, res: Response, next: NextFunction) {
     try {
-      await service.deleteTaskService(req.params.id);
+      await service.deleteTaskService(req.params.id, req.user!);
       return res.status(204).send();
     } catch (err) { next(err); }
   }
