@@ -1,3 +1,4 @@
+// [Skill: controller]
 import { z } from 'zod';
 
 const passwordValidation = z.string()
@@ -29,6 +30,6 @@ export const RefreshTokenSchema = z.object({
 });
 
 // Novo schemas para garantir que a senha e tokens não sejam expostos
-export const UserResponseSchema = UserSchema.omit({ password: true }).catchall(z.any());
+export const UserResponseSchema = UserSchema.omit({ password: true }).catchall(z.unknown());
 
 export const UserListResponseSchema = z.array(UserResponseSchema);

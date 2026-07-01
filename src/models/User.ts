@@ -1,3 +1,4 @@
+// [Skill: repository]
 import { Schema, model, Document, InferSchemaType } from 'mongoose';
 
 export interface IUser extends Document {
@@ -28,13 +29,15 @@ const userSchema = new Schema<IUser>(
 );
 
 // Remove campos sensíveis ao converter para objeto/JSON
-const removeSensitive = (doc: any, ret: any) => {
-  if (ret) {
-    delete ret.password;
-    delete ret.refreshToken;
-    delete ret.resetPasswordToken;
-    delete ret.resetPasswordExpires;
+const removeSensitive = (_doc: unknown, ret: unknown) => {
+  if (typeof ret === 'object' && ret !== null) {
+    const sanitized = ret as Record<string, unknown>;
+    delete sanitized.password;
+    delete sanitized.refreshToken;
+    delete sanitized.resetPasswordToken;
+    delete sanitized.resetPasswordExpires;
   }
+
   return ret;
 };
 
