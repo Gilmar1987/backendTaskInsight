@@ -7,13 +7,19 @@ import bcrypt from 'bcrypt';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import crypto from 'crypto';
 import { emailService } from './Email.service';
+import {
+  ConflictError,
+  NotFoundError,
+  UnauthorizedError,
+  ValidationError,
+} from '../errors/AppError';
 
 const repo = () => new UserRepository();
 
 export class UserService {
   async createUserService(name: string, email: string, password: string, role: 'user' | 'admin' = 'user') {
     if (await repo().findByEmailUserRepository(email))
-      throw new Error('Email já cadastrado');
+      throw new ConflictError('Email já cadastrado');
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await repo().createUserRepository(name, email, hashedPassword, role);
@@ -22,13 +28,13 @@ export class UserService {
 
   async findByEmailUserService(email: string) {
     const user = await repo().findByEmailUserRepository(email);
-    if (!user) throw new Error('Email não encontrado');
+    if (!user) throw new NotFoundError('Email não encontrado');
     return user;
   }
 
   async findByIdUserService(id: string) {
     const user = await repo().findByIdUserRepository(id);
-    if (!user) throw new Error('Usuário não encontrado');
+    if (!user) throw new NotFoundError('Usuário não encontrado');
 
     return user.toObject();
   }
@@ -37,7 +43,7 @@ export class UserService {
     await this.findByIdUserService(userId);
     const existEmail = await repo().findByEmailUserRepository(updateData.email || '');
     if (existEmail && existEmail.id !== userId)
-      throw new Error('Email já cadastrado por outro usuário');
+      throw new ConflictError('Email já cadastrado por outro usuário');
 
     const user = await repo().updateUserRepository(userId, updateData);
     return user?.toObject() || null;
@@ -49,7 +55,7 @@ export class UserService {
 
   async findByRefreshTokenUserService(refreshToken: string) {
     const user = await repo().findByRefreshTokenUserRepository(refreshToken);
-    if (!user) throw new Error('Refresh token inválido');
+    if (!user) throw new UnauthorizedError('Refresh token inválido');
     return user;
   }
 
@@ -59,18 +65,18 @@ export class UserService {
 
   async softDeleteUserService(userId: string) {
     const user = await this.findByIdUserService(userId);
-    if (!user) throw new Error('Usuário não encontrado');
-    if (user.isDeleted) throw new Error('Usuário já deletado');
+    if (!user) throw new NotFoundError('Usuário não encontrado');
+    if (user.isDeleted) throw new ValidationError('Usuário já deletado');
 
     await repo().softDeleteUserRepository(userId);
   }
 
   async loginUserService(email: string, password: string) {
     const user = await repo().findByEmailWithPasswordRepository(email);
-    if (!user || user.isDeleted) throw new Error('Credenciais inválidas');
+    if (!user || user.isDeleted) throw new UnauthorizedError('Credenciais inválidas');
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) throw new Error('Credenciais inválidas');
+    if (!isPasswordValid) throw new UnauthorizedError('Credenciais inválidas');
 
     const { token, refreshToken } = generateTokens(user.id, user.role);
     await repo().updateRefreshTokenUserRepository(user.id, refreshToken);
@@ -80,13 +86,13 @@ export class UserService {
 
   async refreshTokenUserService(refreshToken: string) {
     const user = await repo().findByRefreshTokenUserRepository(refreshToken);
-    if (!user) throw new Error('Refresh token inválido');
+    if (!user) throw new UnauthorizedError('Refresh token inválido');
 
     try {
       jwt.verify(refreshToken, env.JWT_REFRESH_SECRET) as JwtPayload;
     } catch {
       await repo().invalidateRefreshTokenUserRepository(user.id);
-      throw new Error('Refresh token expirado');
+      throw new UnauthorizedError('Refresh token expirado');
     }
 
     const { token, refreshToken: newRefreshToken } = generateTokens(user.id, user.role);
@@ -123,7 +129,7 @@ export class UserService {
 
   async resetPasswordUserService(token: string, newPassword: string) {
     const user = await repo().findByResetTokenRepository(token);
-    if (!user) throw new Error('Token inválido ou expirado');
+    if (!user) throw new ValidationError('Token inválido ou expirado');
 
     const hashed = await bcrypt.hash(newPassword, 10);
     await repo().clearResetTokenRepository(user.id, hashed);
